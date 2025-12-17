@@ -8,6 +8,12 @@ You are about to help prepare for context compaction. Analyze the current conver
 
 ## Your Task
 
+0. **FIRST - Capture tmux session** - Run this bash command IMMEDIATELY before doing anything else:
+   ```bash
+   tmux display-message -p '#S' > ~/.claude/smart-compact-session.txt 2>/dev/null || echo "" > ~/.claude/smart-compact-session.txt
+   ```
+   This saves the tmux session name for background command sending (no focus stealing).
+
 1. **Analyze the conversation** - Review what we've been working on:
    - What files have been edited or created?
    - What key decisions were made?

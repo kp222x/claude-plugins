@@ -3,18 +3,22 @@
 Auto-Compact Script for Smart Compact Plugin
 Cross-platform script to automatically execute /compact with generated instructions.
 
-Requires: pip install pyautogui
+Primary method: tmux send-keys (background, no focus stealing)
+Fallback: pyautogui keyboard simulation (requires focus)
 """
 
 import os
 import sys
 import time
 import platform
+import subprocess
+import shutil
 from pathlib import Path
 
 # Configuration
-# Use ~/.claude/ which exists on all platforms where Claude Code runs
-INSTRUCTIONS_FILE = str(Path.home() / ".claude" / "smart-compact-instructions.txt")
+CLAUDE_DIR = Path.home() / ".claude"
+INSTRUCTIONS_FILE = str(CLAUDE_DIR / "smart-compact-instructions.txt")
+SESSION_FILE = str(CLAUDE_DIR / "smart-compact-session.txt")
 MAX_AGE_SECONDS = 600  # 10 minutes
 
 
@@ -76,8 +80,19 @@ def read_instructions():
     return instructions
 
 
+def read_tmux_session():
+    """Read the tmux session name if available."""
+    if not os.path.exists(SESSION_FILE):
+        return None
+
+    with open(SESSION_FILE, 'r') as f:
+        session = f.read().strip()
+
+    return session if session else None
+
+
 def escape_instructions(instructions: str) -> str:
-    """Escape instructions for safe keyboard input."""
+    """Escape instructions for safe input."""
     # Replace newlines with spaces
     escaped = instructions.replace('\n', ' ')
     # Collapse multiple spaces
@@ -85,8 +100,42 @@ def escape_instructions(instructions: str) -> str:
     return escaped
 
 
-def type_compact_command(instructions: str):
-    """Type the /compact command using pyautogui."""
+def tmux_available():
+    """Check if tmux is available."""
+    return shutil.which('tmux') is not None
+
+
+def tmux_session_exists(session: str) -> bool:
+    """Check if a tmux session exists."""
+    try:
+        result = subprocess.run(
+            ['tmux', 'has-session', '-t', session],
+            capture_output=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def send_via_tmux(session: str, command: str) -> bool:
+    """Send command to tmux session. Returns True on success."""
+    try:
+        # Send the command
+        subprocess.run(
+            ['tmux', 'send-keys', '-t', session, command, 'Enter'],
+            check=True,
+            capture_output=True,
+            timeout=10
+        )
+        return True
+    except Exception as e:
+        print(f"tmux send-keys failed: {e}")
+        return False
+
+
+def send_via_pyautogui(command: str):
+    """Send command via keyboard simulation (fallback)."""
     try:
         import pyautogui
     except ImportError:
@@ -97,12 +146,8 @@ def type_compact_command(instructions: str):
     # Small delay to ensure terminal is focused
     time.sleep(0.3)
 
-    # Type the compact command
-    compact_cmd = f"/compact {instructions}"
-
-    # Use typewrite for cross-platform compatibility
-    # Note: pyautogui.write() is an alias for typewrite()
-    pyautogui.write(compact_cmd, interval=0.01)
+    # Type the command
+    pyautogui.write(command, interval=0.01)
 
     # Press Enter to execute
     time.sleep(0.1)
@@ -110,33 +155,63 @@ def type_compact_command(instructions: str):
 
 
 def cleanup():
-    """Remove the instructions file after use."""
-    try:
-        os.remove(INSTRUCTIONS_FILE)
-    except OSError:
-        pass
+    """Remove temp files after use."""
+    for f in [INSTRUCTIONS_FILE, SESSION_FILE]:
+        try:
+            os.remove(f)
+        except OSError:
+            pass
 
 
 def main():
     """Main execution flow."""
     print("Smart Compact: Starting auto-execution...")
 
-    # Validate file
+    # Validate instructions file
     check_instructions_file()
 
     # Read instructions
     instructions = read_instructions()
-
-    # Escape for keyboard input
     escaped = escape_instructions(instructions)
+    compact_cmd = f"/compact {escaped}"
 
-    # Type the command
-    type_compact_command(escaped)
+    # Try tmux first (preferred - background, no focus stealing)
+    tmux_session = read_tmux_session()
 
-    # Cleanup
+    if tmux_session and tmux_available() and tmux_session_exists(tmux_session):
+        print(f"Smart Compact: Using tmux session '{tmux_session}'")
+
+        # Send compact command
+        if send_via_tmux(tmux_session, compact_cmd):
+            print("Smart Compact: Sent /compact command")
+
+            # Wait for compact to process
+            time.sleep(6)
+
+            # Send continue command
+            if send_via_tmux(tmux_session, "continue"):
+                print("Smart Compact: Sent 'continue' command")
+
+            cleanup()
+            show_notification("Smart Compact", "Compact executed via tmux (background)")
+            print("Smart Compact: Complete!")
+            return
+        else:
+            print("Smart Compact: tmux failed, falling back to pyautogui")
+
+    # Fallback to pyautogui (requires focus)
+    print("Smart Compact: Using pyautogui (focus required)")
+    show_notification("Smart Compact", "Using keyboard simulation - keep terminal focused")
+
+    send_via_pyautogui(compact_cmd)
+
+    # Wait for compact to process
+    time.sleep(6)
+
+    # Send continue
+    send_via_pyautogui("continue")
+
     cleanup()
-
-    # Notify success
     show_notification("Smart Compact", "Compact command executed")
     print("Smart Compact: Complete!")
 
