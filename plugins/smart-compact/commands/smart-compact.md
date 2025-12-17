@@ -44,6 +44,7 @@ Files: [Key files being modified with brief purpose]
 Progress: [Current state - what's done, what's next]
 Context: [Critical technical details needed to continue]
 Decisions: [Key choices made and why]
+Continue: [Explicit instruction for what to do after compact - e.g., "Continue implementing X" or "Resume fixing the bug in Y"]
 ```
 
 ## Important
@@ -52,3 +53,4 @@ Decisions: [Key choices made and why]
 - Focus on what's needed to CONTINUE the work, not a full history
 - Include specific file paths, function names, or technical details that would be hard to rediscover
 - If there are pending TODOs, include them explicitly
+- **ALWAYS include a "Continue:" instruction** - this ensures Claude continues working automatically after compact completes instead of waiting for user input
