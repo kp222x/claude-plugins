@@ -1,0 +1,11 @@
+{
+  "name": "smart-compact",
+  "version": "1.0.0",
+  "description": "Analyze conversation and auto-execute /compact with smart preservation instructions",
+  "author": {
+    "name": "KP",
+    "url": "https://github.com/kp222x"
+  },
+  "keywords": ["compact", "context", "automation", "productivity"],
+  "license": "MIT"
+}

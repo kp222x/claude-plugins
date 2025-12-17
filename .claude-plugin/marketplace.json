@@ -1,0 +1,16 @@
+{
+  "name": "kp-claude-plugins",
+  "owner": {
+    "name": "KP",
+    "url": "https://github.com/kp222x"
+  },
+  "plugins": [
+    {
+      "name": "smart-compact",
+      "source": "./plugins/smart-compact",
+      "description": "Intelligent context compaction with auto-execution",
+      "homepage": "https://github.com/kp222x/claude-plugins",
+      "repository": "https://github.com/kp222x/claude-plugins"
+    }
+  ]
+}
