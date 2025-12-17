@@ -62,7 +62,7 @@ The plugin will:
 
 If auto-execution doesn't work on your system, you can:
 1. Run `/smart-compact`
-2. Copy the instructions from `/tmp/smart-compact-instructions.txt`
+2. Copy the instructions from `~/.claude/smart-compact-instructions.txt`
 3. Manually run `/compact [paste instructions]`
 
 ## Cross-Platform Support

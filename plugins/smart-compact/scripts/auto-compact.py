@@ -10,9 +10,11 @@ import os
 import sys
 import time
 import platform
+from pathlib import Path
 
 # Configuration
-INSTRUCTIONS_FILE = "/tmp/smart-compact-instructions.txt"
+# Use ~/.claude/ which exists on all platforms where Claude Code runs
+INSTRUCTIONS_FILE = str(Path.home() / ".claude" / "smart-compact-instructions.txt")
 MAX_AGE_SECONDS = 600  # 10 minutes
 
 

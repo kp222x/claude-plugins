@@ -21,7 +21,7 @@ You are about to help prepare for context compaction. Analyze the current conver
    - Any TODO items or next steps
    - Technical context needed to continue work
 
-3. **Save instructions to temp file** - Write the instructions to `/tmp/smart-compact-instructions.txt`
+3. **Save instructions to file** - Write the instructions to `~/.claude/smart-compact-instructions.txt` (cross-platform path)
 
 4. **Auto-execute compact** - After saving, run this command to trigger the compact:
    ```bash
